@@ -5,24 +5,42 @@ import PackageDescription
 
 let package = Package(
     name: "SynchronizationFirebase",
+    platforms: [.iOS(.v13), .macOS(.v10_15), .tvOS(.v13), .watchOS(.v6)],
     products: [
         // Products define the executables and libraries a package produces, and make them visible to other packages.
         .library(
             name: "SynchronizationFirebase",
-            targets: ["SynchronizationFirebase"]),
+            targets: ["SynchronizationFirebase"]
+        ),
     ],
     dependencies: [
         // Dependencies declare other packages that this package depends on.
         // .package(url: /* package url */, from: "1.0.0"),
+        .package(
+            name: "Synchronization",
+            url: "https://bitbucket.org/janmazurczak/synchronization",
+            "2.0.1"..<"3.0.0"
+        ),
+        .package(
+            name: "Firebase",
+            url: "https://github.com/firebase/firebase-ios-sdk.git",
+            "8.1.0"..<"9.0.0"
+        ),
     ],
     targets: [
         // Targets are the basic building blocks of a package. A target can define a module or a test suite.
         // Targets can depend on other targets in this package, and on products in packages this package depends on.
         .target(
             name: "SynchronizationFirebase",
-            dependencies: []),
+            dependencies: [
+                "Synchronization",
+                .product(name: "FirebaseFirestore", package: "Firebase"),
+                .product(name: "FirebaseFirestoreSwift-Beta", package: "Firebase"), //TODO: Move to stable once it's released.
+            ]
+        ),
         .testTarget(
             name: "SynchronizationFirebaseTests",
-            dependencies: ["SynchronizationFirebase"]),
+            dependencies: ["SynchronizationFirebase"]
+        ),
     ]
 )
