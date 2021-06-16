@@ -1,31 +1,35 @@
+//
+//  SynchronizationFirebaseRemote.swift
+//
+//
+//  Created by Jan Mazurczak.
+//
 
 import Synchronization
 import Firebase
 import FirebaseFirestoreSwift
 
-public protocol FirebaseSynchronizable {
-    static func firebasePath(for identifier: String, in coordinatorID: String) -> DocumentReference?
+public protocol SynchronizationFirebaseRemote: SynchronizationRemote {
+    associatedtype LocalItem: Codable
+    associatedtype RemoteItem: Codable
+    func local(from fetched: RemoteItem) throws -> Synchronizable<LocalItem>
+    func remote(from local: Synchronizable<LocalItem>) throws -> RemoteItem
+    func path(for identifier: String, in coordinatorID: String) -> DocumentReference?
 }
 
-public class SynchronizationFirebase: SynchronizationRemote {
+public extension SynchronizationFirebaseRemote {
     
-    public init() {}
-    
-    public let name = "Firebase"
-    
-    public func fetch<Item: Codable>(
-        _ itemType: Item.Type,
+    func fetch(
         identifier: String,
         coordinatorID: String,
         modelVersion: Int,
         with remoteRuntimeCache: Any?,
-        completion: @escaping (SynchronizationRemoteFetchResult<Item>) -> Void
+        completion: @escaping (SynchronizationRemoteFetchResult<LocalItem>) -> Void
     ) {
         guard
-            let document = (itemType as? FirebaseSynchronizable.Type)?
-                .firebasePath(for: identifier, in: coordinatorID)
+            let document = path(for: identifier, in: coordinatorID)
         else {
-            Logger.log?("\(itemType) should adopt FirebaseSynchronizable protocol in order to be synchronized.")
+            Logger.log?("Couldn't construct Firebase path for \(LocalItem.self) with id: \(identifier) in coordinator \(coordinatorID).")
             completion(
                 .init(
                     status: .tooNewToParse,
@@ -52,18 +56,21 @@ public class SynchronizationFirebase: SynchronizationRemote {
                     )
                     return
                 }
-                guard document.exists else {
-                    completion(
-                        .init(
-                            status: .nothingToFetch,
-                            item: nil,
-                            runtimeCache: .unchanged
-                        )
-                    )
-                    return
-                }
                 do {
-                    let item = try document.data(as: Synchronizable<Item>.self)
+                    guard
+                        document.exists,
+                        let remoteItem = try document.data(as: RemoteItem.self)
+                    else {
+                        completion(
+                            .init(
+                                status: .nothingToFetch,
+                                item: nil,
+                                runtimeCache: .unchanged
+                            )
+                        )
+                        return
+                    }
+                    let item = try local(from: remoteItem)
                     completion(
                         .init(
                             status: .fetched,
@@ -84,17 +91,16 @@ public class SynchronizationFirebase: SynchronizationRemote {
             }
     }
     
-    public func push<Item: Codable>(
-        item: Synchronizable<Item>,
+    func push(
+        localItem: Synchronizable<LocalItem>,
         coordinatorID: String,
         with remoteRuntimeCache: Any?,
         completion: @escaping (SynchronizationRemotePushResult) -> Void
     ) {
         guard
-            let document = (Item.self as? FirebaseSynchronizable.Type)?
-                .firebasePath(for: item.identifier, in: coordinatorID)
+            let document = path(for: localItem.identifier, in: coordinatorID)
         else {
-            Logger.log?("\(Item.self) should adopt FirebaseSynchronizable protocol in order to be synchronized.")
+            Logger.log?("Couldn't construct Firebase path for \(LocalItem.self) with id: \(localItem.identifier) in coordinator \(coordinatorID).")
             completion(
                 .init(
                     status: .failure,
@@ -104,7 +110,8 @@ public class SynchronizationFirebase: SynchronizationRemote {
             return
         }
         do {
-            try document.setData(from: item) { error in
+            let remoteItem = try remote(from: localItem)
+            try document.setData(from: remoteItem) { error in
                 if let error = error {
                     Logger.log?("Firebase pushing error: \(error)")
                 }
@@ -126,14 +133,4 @@ public class SynchronizationFirebase: SynchronizationRemote {
         }
     }
     
-    public func subscribeCoordinator(with identifier: String) {}
-    public func unsubscribeCoordinator(with identifier: String) {}
-    
 }
-
-public extension Date {
-    static var distantPastFirebaseSafe: Date {
-        Date().addingTimeInterval(-50 * 365 * 24 * 60 * 60)
-    }
-}
-
