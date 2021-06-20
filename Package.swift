@@ -19,7 +19,7 @@ let package = Package(
         .package(
             name: "Synchronization",
             url: "https://bitbucket.org/janmazurczak/synchronization",
-            "2.0.2"..<"3.0.0"
+            "2.0.3"..<"3.0.0"
         ),
         .package(
             name: "Firebase",
