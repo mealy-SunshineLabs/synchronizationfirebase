@@ -7,11 +7,11 @@
 
 import Synchronization
 
-public extension SynchronizationFirebaseRemote where RemoteItem == Synchronizable<LocalItem> {
-    
+public protocol SynchronizationFirebaseRemoteMappingItemAsIs: SynchronizationFirebaseRemote where RemoteItem == Synchronizable<LocalItem> {}
+
+public extension SynchronizationFirebaseRemoteMappingItemAsIs {
     func local(from fetched: RemoteItem) throws -> Synchronizable<LocalItem> { fetched }
     func remote(from local: Synchronizable<LocalItem>) throws -> RemoteItem { local }
-    
 }
 
 public extension SynchronizationFirebaseRemote {
