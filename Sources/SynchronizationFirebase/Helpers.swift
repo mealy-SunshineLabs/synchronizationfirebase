@@ -10,8 +10,8 @@ import Synchronization
 public protocol SynchronizationFirebaseRemoteMappingItemAsIs: SynchronizationFirebaseRemote where RemoteItem == Synchronizable<LocalItem> {}
 
 public extension SynchronizationFirebaseRemoteMappingItemAsIs {
-    func local(from fetched: RemoteItem) throws -> Synchronizable<LocalItem> { fetched }
-    func remote(from local: Synchronizable<LocalItem>) throws -> RemoteItem { local }
+    func local(from fetched: RemoteItem, with identifier: String, at coordinatorId: String) throws -> Synchronizable<LocalItem> { fetched }
+    func remote(from local: Synchronizable<LocalItem>, at coordinatorId: String) throws -> RemoteItem { local }
 }
 
 public extension SynchronizationFirebaseRemote {
