@@ -12,8 +12,8 @@ import FirebaseFirestoreSwift
 public protocol SynchronizationFirebaseRemote: SynchronizationRemote {
     associatedtype LocalItem: Codable
     associatedtype RemoteItem: Codable
-    func local(from fetched: RemoteItem) throws -> Synchronizable<LocalItem>
-    func remote(from local: Synchronizable<LocalItem>) throws -> RemoteItem
+    func local(from fetched: RemoteItem, with identifier: String, at coordinatorId: String) throws -> Synchronizable<LocalItem>
+    func remote(from local: Synchronizable<LocalItem>, at coordinatorId: String) throws -> RemoteItem
     func path(for identifier: String, in coordinatorID: String) -> DocumentReference?
 }
 
@@ -70,7 +70,7 @@ public extension SynchronizationFirebaseRemote {
                         )
                         return
                     }
-                    let item = try local(from: remoteItem)
+                    let item = try local(from: remoteItem, with: identifier, at: coordinatorID)
                     completion(
                         .init(
                             status: .fetched,
@@ -110,7 +110,7 @@ public extension SynchronizationFirebaseRemote {
             return
         }
         do {
-            let remoteItem = try remote(from: localItem)
+            let remoteItem = try remote(from: localItem, at: coordinatorID)
             try document.setData(from: remoteItem) { error in
                 if let error = error {
                     Logger.log?("Firebase pushing error: \(error)")
