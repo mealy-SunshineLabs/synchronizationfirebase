@@ -32,7 +32,7 @@ public extension SynchronizationFirebaseRemote {
             Logger.log?("Couldn't construct Firebase path for \(LocalItem.self) with id: \(identifier) in coordinator \(coordinatorID).")
             completion(
                 .init(
-                    status: .tooNewToParse,
+                    status: .fetchingFailed(SynchronizationFirebaseError.invalidFirebaseDocumentPath),
                     item: nil,
                     runtimeCache: .unchanged
                 )
@@ -49,7 +49,7 @@ public extension SynchronizationFirebaseRemote {
                     }
                     completion(
                         .init(
-                            status: .fetchingFailed,
+                            status: .fetchingFailed(error ?? SynchronizationFirebaseError.unknownFirebaseFetchnigProblem),
                             item: nil,
                             runtimeCache: .unchanged
                         )
@@ -82,7 +82,7 @@ public extension SynchronizationFirebaseRemote {
                     Logger.log?("Firebase item parsing error: \(error)")
                     completion(
                         .init(
-                            status: .canNotParse,
+                            status: .canNotParse(error),
                             item: nil,
                             runtimeCache: .unchanged
                         )
@@ -103,7 +103,7 @@ public extension SynchronizationFirebaseRemote {
             Logger.log?("Couldn't construct Firebase path for \(LocalItem.self) with id: \(localItem.identifier) in coordinator \(coordinatorID).")
             completion(
                 .init(
-                    status: .failure,
+                    status: .failure(SynchronizationFirebaseError.invalidFirebaseDocumentPath),
                     runtimeCache: .unchanged
                 )
             )
@@ -126,7 +126,7 @@ public extension SynchronizationFirebaseRemote {
             Logger.log?("Firebase encoding error: \(error)")
             completion(
                 .init(
-                    status: .encodingFailure,
+                    status: .encodingFailure(error),
                     runtimeCache: .unchanged
                 )
             )

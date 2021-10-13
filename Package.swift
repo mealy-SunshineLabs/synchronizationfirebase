@@ -19,7 +19,7 @@ let package = Package(
         .package(
             name: "Synchronization",
             url: "https://bitbucket.org/janmazurczak/synchronization",
-            "2.0.4"..<"3.0.0"
+            "2.1.0"..<"3.0.0"
         ),
         .package(
             name: "Firebase",
@@ -35,7 +35,7 @@ let package = Package(
             dependencies: [
                 "Synchronization",
                 .product(name: "FirebaseFirestore", package: "Firebase"),
-                .product(name: "FirebaseFirestoreSwift-Beta", package: "Firebase"), //TODO: Move to stable once it's released.
+                .product(name: "FirebaseFirestoreSwift-Beta", package: "Firebase"),
             ]
         ),
         .testTarget(

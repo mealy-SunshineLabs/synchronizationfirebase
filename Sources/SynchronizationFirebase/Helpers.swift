@@ -34,7 +34,7 @@ public extension SynchronizationFirebaseRemote {
                 Logger.log?("🛑 There is a serious integration problem with \(Self.self) not aligning SynchronizationFirebaseRemote.")
                 completion(
                     .init(
-                        status: .canNotParse,
+                        status: .canNotParse(SynchronizationFirebaseError.appInternalProblemWithSynchronizationFirebaseRemoteAlignment),
                         item: nil,
                         runtimeCache: .unchanged
                     )
@@ -55,7 +55,7 @@ public extension SynchronizationFirebaseRemote {
             Logger.log?("🛑 There is a serious integration problem with \(Self.self) not aligning SynchronizationFirebaseRemote.")
             completion(
                 .init(
-                    status: .encodingFailure,
+                    status: .encodingFailure(SynchronizationFirebaseError.appInternalProblemWithSynchronizationFirebaseRemoteAlignment),
                     runtimeCache: .unchanged
                 )
             )
