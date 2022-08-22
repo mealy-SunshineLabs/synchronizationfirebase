@@ -58,8 +58,7 @@ public extension SynchronizationFirebaseRemote {
                 }
                 do {
                     guard
-                        document.exists,
-                        let remoteItem = try document.data(as: RemoteItem.self)
+                        document.exists
                     else {
                         completion(
                             .init(
@@ -70,6 +69,7 @@ public extension SynchronizationFirebaseRemote {
                         )
                         return
                     }
+                    let remoteItem = try document.data(as: RemoteItem.self)
                     let item = try local(from: remoteItem, with: identifier, at: coordinatorID)
                     completion(
                         .init(
