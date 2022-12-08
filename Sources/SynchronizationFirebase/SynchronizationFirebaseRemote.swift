@@ -15,9 +15,17 @@ public protocol SynchronizationFirebaseRemote: SynchronizationRemote {
     func local(from fetched: RemoteItem, with identifier: String, at coordinatorId: String) throws -> Synchronizable<LocalItem>
     func remote(from local: Synchronizable<LocalItem>, at coordinatorId: String) throws -> RemoteItem
     func path(for identifier: String, in coordinatorID: String) -> DocumentReference?
+    static var updatingCacheLifetime: TimeInterval { get }
+}
+
+struct RuntimeCache<R: SynchronizationFirebaseRemote> {
+    private let fetchedTime: TimeInterval = ProcessInfo.processInfo.systemUptime
+    var hasExpired: Bool { ProcessInfo.processInfo.systemUptime > fetchedTime + R.updatingCacheLifetime }
 }
 
 public extension SynchronizationFirebaseRemote {
+    
+    static var updatingCacheLifetime: TimeInterval { 90 }
     
     func fetch(
         identifier: String,
@@ -64,7 +72,7 @@ public extension SynchronizationFirebaseRemote {
                             .init(
                                 status: .nothingToFetch,
                                 item: nil,
-                                runtimeCache: .unchanged
+                                runtimeCache: .changed(RuntimeCache<Self>())
                             )
                         )
                         return
@@ -75,7 +83,7 @@ public extension SynchronizationFirebaseRemote {
                         .init(
                             status: .fetched,
                             item: item,
-                            runtimeCache: .unchanged
+                            runtimeCache: .changed(RuntimeCache<Self>())
                         )
                     )
                 } catch {
@@ -98,6 +106,17 @@ public extension SynchronizationFirebaseRemote {
         completion: @escaping (SynchronizationRemotePushResult) -> Void
     ) {
         guard
+            (remoteRuntimeCache as? RuntimeCache<Self>)?.hasExpired == false
+        else {
+            completion(
+                .init(
+                    status: .failureRefetchIsNeeded,
+                    runtimeCache: .unchanged
+                )
+            )
+            return
+        }
+        guard
             let document = path(for: localItem.identifier, in: coordinatorID)
         else {
             Logger.log?("Couldn't construct Firebase path for \(LocalItem.self) with id: \(localItem.identifier) in coordinator \(coordinatorID).")
@@ -118,7 +137,7 @@ public extension SynchronizationFirebaseRemote {
                 completion(
                     .init(
                         status: error == nil ? .success : .failureRefetchIsNeeded,
-                        runtimeCache: .unchanged
+                        runtimeCache: error == nil ? .changed(RuntimeCache<Self>()) : .unchanged
                     )
                 )
             }
