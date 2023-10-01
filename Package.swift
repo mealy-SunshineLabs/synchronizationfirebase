@@ -24,7 +24,7 @@ let package = Package(
         .package(
             name: "Firebase",
             url: "https://github.com/firebase/firebase-ios-sdk.git",
-            "8.1.0"..<"9.0.0"
+            "10.0.0"..<"11.0.0"
         ),
     ],
     targets: [
@@ -35,7 +35,7 @@ let package = Package(
             dependencies: [
                 "Synchronization",
                 .product(name: "FirebaseFirestore", package: "Firebase"),
-                .product(name: "FirebaseFirestoreSwift-Beta", package: "Firebase"),
+                .product(name: "FirebaseFirestoreSwift", package: "Firebase"),
             ]
         ),
         .testTarget(
