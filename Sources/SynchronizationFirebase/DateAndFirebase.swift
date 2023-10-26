@@ -9,7 +9,7 @@ import Foundation
 
 public extension Date {
     static var distantPastFirebaseSafe: Date {
-        Date().addingTimeInterval(-50 * 365 * 24 * 60 * 60)
+        Date(timeIntervalSince1970: TimeInterval(0))
     }
 }
 
